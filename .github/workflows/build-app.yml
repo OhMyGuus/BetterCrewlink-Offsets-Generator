@@ -1,4 +1,4 @@
-name: .NET
+name: Build app
 
 on:
   workflow_dispatch:
@@ -23,10 +23,10 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --configuration Release
       
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
         name: Build output
-        path: BCL-OffsetGenerator/bin
+        path: BCL-OffsetGenerator/bin/Release/net6.0/
