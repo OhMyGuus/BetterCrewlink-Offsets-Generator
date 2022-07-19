@@ -29,4 +29,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: Build output
-        path: BCL-OffsetGenerator\bin\Debug\net6.0
+        path: BCL-OffsetGenerator\bin
