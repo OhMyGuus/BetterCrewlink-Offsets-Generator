@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BCL-OffsetGenerator", "BCL-OffsetGenerator\BCL-OffsetGenerator.csproj", "{8717E96B-75E7-416E-A7DD-CE87AE894921}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DepotDownloader", "DepotDownloader\DepotDownloader\DepotDownloader.csproj", "{2AAB7C51-A8F4-4C08-8D43-B35972605537}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8717E96B-75E7-416E-A7DD-CE87AE894921}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8717E96B-75E7-416E-A7DD-CE87AE894921}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8717E96B-75E7-416E-A7DD-CE87AE894921}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8717E96B-75E7-416E-A7DD-CE87AE894921}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AAB7C51-A8F4-4C08-8D43-B35972605537}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AAB7C51-A8F4-4C08-8D43-B35972605537}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AAB7C51-A8F4-4C08-8D43-B35972605537}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AAB7C51-A8F4-4C08-8D43-B35972605537}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CABB16A6-E7FA-48F0-A131-18C386C6EAF9}
+	EndGlobalSection
+EndGlobal
