@@ -13,11 +13,11 @@ using HtmlAgilityPack;
 
 namespace BCL_OffsetGenerator
 {
-    class SteamGameSource : IDisposable
+    class SteamDownloadSource : IDisposable, IGameDownloadSource
     {
         private readonly SteamAccount _steamAccount;
-
-        public SteamGameSource(SteamAccount account)
+        private static readonly DateTime ill2cppDate = new DateTime(2019,11,6);
+        public SteamDownloadSource(SteamAccount account)
         {
             _steamAccount = account;
         }
@@ -58,25 +58,28 @@ namespace BCL_OffsetGenerator
                         }
                     }
 
-                    if (manifest.Date != null && manifest.ManifestId > 0)
+                    if (manifest.Date != null && manifest.ManifestId > 0 && manifest.Date > ill2cppDate)
                     {
                         manifests.Add(manifest);
                     }
                 }
             }
 
-            return manifests;
+            return manifests.OrderByDescending(o => o.Date).ToList();
         }
 
-        public async Task DownloadManifests(List<MannifestInfo> manifests)
+        public async Task DownloadManifests(List<MannifestInfo> manifests, bool skipDownload = false)
         {
             InitializeContentDownloader();
 
             //  await ContentDownloader.DownloadAppAsync(945360, manifests.Select(o => ((uint)945361, o.ManifestId)).ToList(), ContentDownloader.DEFAULT_BRANCH, null, null, null, false, true);
 
-            foreach (var manifest in manifests)
+            foreach (var manifest in manifests.ToArray())
             {
-                await DownloadManifest(manifest);
+                if (!await DownloadManifest(manifest, skipDownload))
+                {
+                    manifests.Remove(manifest);
+                }
             }
         }
 
@@ -86,65 +89,39 @@ namespace BCL_OffsetGenerator
             ContentDownloader.Config.UsingFileList = true;
             ContentDownloader.Config.MaxDownloads = 8;
             ContentDownloader.Config.MaxServers = 20;
-            ContentDownloader.Config.InstallDirectory = "AmongUsFiles";
+            ContentDownloader.Config.InstallDirectory = Constants.AMONGUSFILES_PATH;
             ContentDownloader.Config.FilesToDownloadRegex = new List<Regex>();
             ContentDownloader.Config.FilesToDownload = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 "GameAssembly.dll",
                 "Among Us_Data/globalgamemanagers",
-                "Among Us_Data/il2cpp_data/Metadata/global-metadata.dat"
+                "Among Us_Data/il2cpp_data/Metadata/global-metadata.dat",
+                "MonoBleedingEdge/EmbedRuntime/MonoPosixHelper.dll"
             };
             DepotDownloader.Program.InitializeSteam(_steamAccount.Username, _steamAccount.Password);
         }
 
+        private bool downloadedAllFiles(string folder) => (Directory.Exists(folder)
+                                                           && File.Exists($"{folder}/GameAssembly.dll")
+                                                           && File.Exists($"{folder}/Among Us_Data/globalgamemanagers")
+                                                           && File.Exists(
+                                                               $"{folder}/Among Us_Data/il2cpp_data/Metadata/global-metadata.dat"));
 
-        public async Task DownloadManifest(MannifestInfo manifest)
+        public async Task<bool> DownloadManifest(MannifestInfo manifest, bool skipDownload = false)
         {
-            //  DepotDownloader
-            // await ContentDownloader.DownloadAppAsync(945360, 945361, manifest.ManifestId);
-            //C:\Users\GuusM\source\repos\BCL-OffsetGenerator\BCL-OffsetGenerator\DepotDownloader
-            // var a = Assembly.Load(bytes);
-            var folder = $"AmongUsFiles/{manifest.ManifestId}";
+            var folder = $"{Constants.AMONGUSFILES_PATH}/{manifest.ManifestId}";
 
-            if (Directory.Exists(folder)
-                && File.Exists($"{folder}/GameAssembly.dll")
-                && File.Exists($"{folder}/Among Us_Data/globalgamemanagers")
-                && File.Exists($"{folder}/Among Us_Data/il2cpp_data/Metadata/global-metadata.dat")
-               )
-                return;
+            if (downloadedAllFiles(folder))
+                return true;
+            if (skipDownload || File.Exists($"{folder}/Among Us_Data/il2cpp_data/Metadata/global-metadata.dat"))
+                return false;
 
             DepotConfigStore.Instance = null;
             ContentDownloader.Config.InstallDirectory = folder;
             await ContentDownloader.DownloadAppAsync(945360, new List<(uint, ulong)> { (945361, manifest.ManifestId) },
                 ContentDownloader.DEFAULT_BRANCH, null, null, null, false, true);
 
-            // var process = new Process
-            // {
-            //     StartInfo = new ProcessStartInfo
-            //     {
-            //         FileName = @"DepotDownloader\DepotDownloader.exe",
-            //         Arguments = String.Join(" ", new string[]
-            //         {
-            //             "-app 945360",
-            //             "-depot 945361",
-            //             $"-username {steamAccount.Username}",
-            //             $"-password {steamAccount.Password}",
-            //             $"-manifest {manifest.ManifestId}",
-            //             "-filelist DepotDownloader/files.txt",
-            //             $"-dir AmongUsFiles/{manifest.ManifestId}"
-            //         }),
-            //         UseShellExecute = false,
-            //         RedirectStandardOutput = false,
-            //         CreateNoWindow = false,
-            //     }
-            // };
-            // process.Start();
-            // //while (!process.StandardOutput.EndOfStream)
-            // //{
-            // //    string line = process.StandardOutput.ReadLine();
-            // //    // do something with line
-            // //}
-            // process.WaitForExit();
+            return downloadedAllFiles(folder);
         }
 
         public void Dispose()

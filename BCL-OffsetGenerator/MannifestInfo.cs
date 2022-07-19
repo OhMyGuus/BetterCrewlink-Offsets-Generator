@@ -2,7 +2,7 @@
 
 namespace BCL_OffsetGenerator
 {
-    class MannifestInfo
+    public class MannifestInfo
     {
         public DateTime Date { get; set; }
         public ulong ManifestId { get; set; }

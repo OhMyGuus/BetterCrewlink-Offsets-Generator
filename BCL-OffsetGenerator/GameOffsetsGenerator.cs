@@ -1,193 +1,231 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BCL_OffsetGenerator
 {
-    partial class GameOffsetsGenerator
+    public class GameOffsetsGenerator
     {
-        private Offsets baseOffsets;
-        private Offsets offsets;
+        private static Offsets _baseOffsetsx64;
+        private static Offsets _baseOffsetsx86;
 
-        private string[] classfile;
-        private MannifestInfo _mannifestInfo;
+        private Offsets _baseOffsets;
 
-        public GameOffsetsGenerator(MannifestInfo mannifestInfo, string path)
+        private Offsets _offsets;
+
+        private string[] _classfile;
+
+        private MannifestInfo _manifest;
+
+        public GameOffsetsGenerator(MannifestInfo manifest)
         {
-            _mannifestInfo = mannifestInfo;
-            baseOffsets = GetbaseOffsets();
-            classfile = File.ReadAllLines($"{path}/dump/dump.cs");
-            offsets = baseOffsets with { };
+            _manifest = manifest;
+            _baseOffsets = GetbaseOffsets();
+            _classfile = File.ReadAllLines($"{Constants.AMONGUSFILES_PATH}/{manifest.ManifestId}/dump/dump.cs");
+            _offsets = _baseOffsets with { };
         }
 
-        internal Offsets GetbaseOffsets()
+        private void Cache()
         {
-            return JsonConvert.DeserializeObject<Offsets>(File.ReadAllText($"baseoffsets/{(_mannifestInfo.x64 ? "x64" : "x86")}/baseoffsets.json"));
-        }
-        internal Offsets Generate()
-        {
-            HandleClassProps(offsets);
-            return offsets;
+
         }
 
-        internal void HandleOffset(string propertyname)
+        private Offsets GetbaseOffsets()
+        {
+            var getOffsets = () => JsonConvert.DeserializeObject<Offsets>(File.ReadAllText($"basefiles/baseoffsets_{(_manifest.x64 ? "x64" : "x86")}.json"));
+            return _manifest.x64 ? _baseOffsetsx64 ?? (_baseOffsetsx64 = getOffsets()) : _baseOffsetsx86 ?? (_baseOffsetsx86 = getOffsets());
+        }
+
+        public Offsets Generate()
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            Console.WriteLine("Generating offsets for: {0}", _manifest.Version);
+            stopwatch.Start();
+            HandleClassProps(_offsets);
+            stopwatch.Stop();
+            Console.WriteLine("Stopwatch: {0}ms", stopwatch.ElapsedMilliseconds);
+            return _offsets;
+            //1061ms
+            //3186ms
+        }
+
+        private void HandleOffset(string propertyname)
         {
             switch (propertyname)
             {
                 case "meetingHudState":
-                    offsets.meetingHudState[0] = GetOffsetFromClass("MeetingHud", "state");
+                    _offsets.meetingHudState[0] = GetOffsetFromClass("MeetingHud", "state");
                     break;
                 case "allPlayersPtr":
-                    offsets.allPlayersPtr[0] = GetOffsetFromClass("GameData", "AllPlayers");
+                    _offsets.allPlayersPtr[0] = GetOffsetFromClass("GameData", "AllPlayers");
                     break;
                 case "shipStatus_systems":
-                    offsets.shipStatus_systems[0] = GetOffsetFromClass("ShipStatus", "Systems");
+                    _offsets.shipStatus_systems[0] = GetOffsetFromClass("ShipStatus", "Systems");
                     break;
                 case "shipStatus_map":
-                    offsets.shipStatus_map[0] = GetOffsetFromClass("ShipStatus", "Type");
+                    _offsets.shipStatus_map[0] = GetOffsetFromClass("ShipStatus", "Type");
                     break;
                 case "shipstatus_allDoors":
-                    offsets.shipstatus_allDoors[0] = GetOffsetFromClass("ShipStatus", "AllDoors");
+                    _offsets.shipstatus_allDoors[0] = GetOffsetFromClass("ShipStatus", "AllDoors");
                     break;
                 case "door_doorId":
-                    offsets.door_doorId = GetOffsetFromClass("PlainDoor", "Id");
                     break;
                 case "door_isOpen":
-                    offsets.door_isOpen = GetOffsetFromClass("PlainDoor", "Open");
+                    _offsets.door_isOpen = GetOffsetFromClass("PlainDoor", "Open");
                     break;
                 case "deconDoorUpperOpen":
-                    offsets.deconDoorLowerOpen = new List<long> { GetOffsetFromClass("DeconSystem", "UpperDoor"), offsets.door_isOpen };
+                    _offsets.deconDoorLowerOpen = new List<long> { GetOffsetFromClass("DeconSystem", "UpperDoor"), _offsets.door_isOpen };
                     break;
                 case "deconDoorLowerOpen":
-                    offsets.deconDoorLowerOpen = new List<long> { GetOffsetFromClass("DeconSystem", "LowerDoor"), offsets.door_isOpen };
+                    _offsets.deconDoorLowerOpen = new List<long> { GetOffsetFromClass("DeconSystem", "LowerDoor"), _offsets.door_isOpen };
                     break;
                 case "hqHudSystemType_CompletedConsoles":
-                    offsets.hqHudSystemType_CompletedConsoles[0] = GetOffsetFromClass("HqHudSystemType", "CompletedConsoles");
+                    _offsets.hqHudSystemType_CompletedConsoles[0] = GetOffsetFromClass("HqHudSystemType", "CompletedConsoles");
                     break;
                 case "HudOverrideSystemType_isActive":
-                    offsets.HudOverrideSystemType_isActive[0] = GetOffsetFromClass("HudOverrideSystemType", "<IsActive>k__BackingField");
+                    _offsets.HudOverrideSystemType_isActive[0] = GetOffsetFromClass("HudOverrideSystemType", "<IsActive>k__BackingField");
                     break;
                 case "planetSurveillanceMinigame_currentCamera":
-                    offsets.planetSurveillanceMinigame_currentCamera[0] = GetOffsetFromClass("PlanetSurveillanceMinigame", "currentCamera");
+                    _offsets.planetSurveillanceMinigame_currentCamera[0] = GetOffsetFromClass("PlanetSurveillanceMinigame", "currentCamera");
                     break;
                 case "planetSurveillanceMinigame_camarasCount":
-                    offsets.planetSurveillanceMinigame_camarasCount[0] = GetOffsetFromClass("PlanetSurveillanceMinigame", "survCameras");
+                    _offsets.planetSurveillanceMinigame_camarasCount[0] = GetOffsetFromClass("PlanetSurveillanceMinigame", "survCameras");
                     break;
                 case "surveillanceMinigame_FilteredRoomsCount":
-                    offsets.surveillanceMinigame_FilteredRoomsCount[0] = GetOffsetFromClass("SurveillanceMinigame", "FilteredRooms");
+                    _offsets.surveillanceMinigame_FilteredRoomsCount[0] = GetOffsetFromClass("SurveillanceMinigame", "FilteredRooms");
                     break;
                 case "palette_playercolor":
-                    offsets.palette_playercolor[0] = GetOffsetFromClass("Palette", "PlayerColors");
+                    _offsets.palette_playercolor[0] = GetOffsetFromClass("Palette", "PlayerColors");
                     break;
                 case "palette_shadowColor":
-                    offsets.palette_shadowColor[0] = GetOffsetFromClass("Palette", "ShadowColors");
+                    _offsets.palette_shadowColor[0] = GetOffsetFromClass("Palette", "ShadowColors");
                     break;
                 case "lightRadius":
-                    offsets.lightRadius = new List<long> { GetOffsetFromClass("PlayerControl", "myLight"), GetOffsetFromClass("LightSource", "LightRadius") };
+                    _offsets.lightRadius = new List<long> { GetOffsetFromClass("PlayerControl", "myLight"), GetOffsetFromClass("LightSource", "LightRadius") };
                     break;
                 case "gameOptions_MapId":
-                    offsets.gameOptions_MapId[0] = GetOffsetFromClass("GameOptionsData", "MapId");
+                    _offsets.gameOptions_MapId[0] = GetOffsetFromClass("GameOptionsData", "MapId");
                     break;
                 case "gameOptions_MaxPLayers":
-                    offsets.gameOptions_MaxPLayers[0] = GetOffsetFromClass("GameOptionsData", "MaxPlayers");
+                    _offsets.gameOptions_MaxPLayers[0] = GetOffsetFromClass("GameOptionsData", "MaxPlayers");
                     break;
                 case "serverManager_currentServer": // still needs work and double check
                                                     //  offsets.serverManager_currentServer[0] = GetOffsetFromClass("GameOptionsData", "<CurrentRegion>k__BackingField");
                     break;
 
                 case "innerNetClient.networkAddress":
-                    offsets.innerNetClient.networkAddress = GetOffsetFromClass("InnerNetClient", "networkAddress");
+                    _offsets.innerNetClient.networkAddress = GetOffsetFromClass("InnerNetClient", "networkAddress");
                     break;
                 case "innerNetClient.networkPort":
-                    offsets.innerNetClient.networkAddress = GetOffsetFromClass("InnerNetClient", "networkPort");
+                    _offsets.innerNetClient.networkPort = GetOffsetFromClass("InnerNetClient", "networkPort");
                     break;
                 case "innerNetClient.gameMode":
-                    offsets.innerNetClient.gameMode = GetOffsetFromClass("InnerNetClient", "GameMode");
+                    _offsets.innerNetClient.gameMode = GetOffsetFromClass("InnerNetClient", "GameMode");
                     break;
                 case "innerNetClient.gameId":
-                    offsets.innerNetClient.gameId = GetOffsetFromClass("InnerNetClient", "GameId");
+                    var off1 = GetOffsetFromClass("InnerNetClient", "GameId");
+                    _offsets.innerNetClient.gameId = off1 != -1 ? off1 : GetOffsetFromClass("AmongUsClient", "GameId");
                     break;
                 case "innerNetClient.hostId":
-                    offsets.innerNetClient.hostId = GetOffsetFromClass("InnerNetClient", "HostId");
+                    _offsets.innerNetClient.hostId = GetOffsetFromClass("InnerNetClient", "HostId");
                     break;
                 case "innerNetClient.clientId":
-                    offsets.innerNetClient.clientId = GetOffsetFromClass("InnerNetClient", "ClientId");
+                    _offsets.innerNetClient.clientId = GetOffsetFromClass("InnerNetClient", "ClientId");
                     break;
                 case "innerNetClient.gameState":
-                    offsets.innerNetClient.gameState = GetOffsetFromClass("InnerNetClient", "GameState");
+                    _offsets.innerNetClient.gameState = GetOffsetFromClass("InnerNetClient", "GameState");
                     break;
                 case "innerNetClient.onlineScene":
-                    offsets.innerNetClient.onlineScene = GetOffsetFromClass("AmongUsClient", "OnlineScene");
+                    _offsets.innerNetClient.onlineScene = GetOffsetFromClass("AmongUsClient", "OnlineScene");
                     break;
                 case "innerNetClient.mainMenuScene":
-                    offsets.innerNetClient.mainMenuScene = GetOffsetFromClass("AmongUsClient", "MainMenuScene");
+                    _offsets.innerNetClient.mainMenuScene = GetOffsetFromClass("AmongUsClient", "MainMenuScene");
                     break;
                 case "player.isLocal":
-                    offsets.player.isLocal[0] = GetOffsetFromClass("PlayerControl", "myLight");
+                    _offsets.player.isLocal[0] = GetOffsetFromClass("PlayerControl", "myLight");
                     break;
                 case "player.isDummy":
-                    offsets.player.isDummy[0] = GetOffsetFromClass("PlayerControl", "isDummy");
+                    _offsets.player.isDummy[0] = GetOffsetFromClass("PlayerControl", "isDummy");
                     break;
                 case "player.localX":
-                    offsets.player.localX[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
+                    _offsets.player.localX[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
                     break;
                 case "player.localY":
-                    offsets.player.localY[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
+                    _offsets.player.localY[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
                     break;
                 case "player.remoteX":
-                    offsets.player.remoteX[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
+                    _offsets.player.remoteX[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
                     break;
                 case "player.remoteY":
-                    offsets.player.remoteY[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
+                    _offsets.player.remoteY[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
                     break;
                 case "player.inVent":
-                    offsets.player.inVent[0] = GetOffsetFromClass("PlayerControl", "inVent");
+                    _offsets.player.inVent[0] = GetOffsetFromClass("PlayerControl", "inVent");
                     break;
                 case "player.clientId":
-                    offsets.player.clientId[0] = GetOffsetFromClass("InnerNetObject", "OwnerId");
+                    _offsets.player.clientId[0] = GetOffsetFromClass("InnerNetObject", "OwnerId");
                     break;
                 case "player.currentOutfit":
-                    offsets.player.currentOutfit[0] = GetOffsetFromClass("PlayerControl", "<CurrentOutfitType>k__BackingField");
+                    _offsets.player.currentOutfit[0] = GetOffsetFromClass("PlayerControl", "<CurrentOutfitType>k__BackingField");
                     break;
                 case "player.roleTeam":
-                    offsets.player.roleTeam[0] = GetOffsetFromClass("RoleBehaviour", "TeamType");
+                    _offsets.player.roleTeam[0] = GetOffsetFromClass("RoleBehaviour", "TeamType");
                     break;
                 case "player.nameText":
-                    offsets.player.nameText[0] = GetOffsetFromClass("PlayerControl", "nameText");
+                    _offsets.player.nameText[0] = GetOffsetFromClass("PlayerControl", "nameText");
+                    if (_offsets.player.nameText[0] == -1)
+                    {
+                        var txtMeshProOffset = _offsets.player.nameText[1];
+                        _offsets.player.nameText = new List<long>()
+                        {
+                            GetOffsetFromClass("PlayerControl", "cosmetics"), GetOffsetFromClass("CosmeticsLayer", "nameText"),
+                            txtMeshProOffset
+                        };
+                    }
                     break;
                 case "player.outfit.colorId":
-                    offsets.player.outfit.colorId[0] = GetOffsetFromClass("GameData.PlayerOutfit", "ColorId");
+                    _offsets.player.outfit.colorId[0] = GetOffsetFromClass("GameData.PlayerOutfit", "ColorId");
                     break;
                 case "player.outfit.hatId":
-                    offsets.player.outfit.hatId[0] = GetOffsetFromClass("GameData.PlayerOutfit", "HatId");
+                    _offsets.player.outfit.hatId[0] = GetOffsetFromClass("GameData.PlayerOutfit", "HatId");
                     break;
                 case "player.outfit.skinId":
-                    offsets.player.outfit.skinId[0] = GetOffsetFromClass("GameData.PlayerOutfit", "SkinId");
+                    _offsets.player.outfit.skinId[0] = GetOffsetFromClass("GameData.PlayerOutfit", "SkinId");
                     break;
                 case "player.outfit.visorId":
-                    offsets.player.outfit.visorId[0] = GetOffsetFromClass("GameData.PlayerOutfit", "VisorId");
+                    _offsets.player.outfit.visorId[0] = GetOffsetFromClass("GameData.PlayerOutfit", "VisorId");
                     break;
                 case "player.outfit.playerName":
-                    offsets.player.outfit.playerName[0] = GetOffsetFromClass("GameData.PlayerOutfit", "_playerName");
-                    break;
+                    {
+                        _offsets.player.outfit.playerName[0] = GetOffsetFromClass("GameData.PlayerOutfit", "_playerName");
+                        if (_offsets.player.outfit.playerName[0] == -1)
+                        {
+                            _offsets.player.outfit.playerName[0] = GetOffsetFromClass("GameData.PlayerOutfit", "postCensorName");
+                        }
+                        break;
+                    }
+
                 case "player.outfit":
-                    HandleClassProps(offsets.player.outfit, "player.outfit.");
+                    HandleClassProps(_offsets.player.outfit, "player.outfit.");
                     break;
                 case "player._struct":
                     {
-                        offsets.player._struct = GeneratePlayerStruct();
+                        _offsets.player._struct = GeneratePlayerStruct();
 
                         // needs works
                         break;
                     }
                 case "innerNetClient":
-                    HandleClassProps(offsets.innerNetClient, "innerNetClient.");
+                    HandleClassProps(_offsets.innerNetClient, "innerNetClient.");
                     break;
                 case "player":
-                    HandleClassProps(offsets.player, "player.");
+                    HandleClassProps(_offsets.player, "player.");
                     break;
                 default:
                     // Console.WriteLine("SKIPPING: {0}", propertyname);
@@ -235,7 +273,7 @@ namespace BCL_OffsetGenerator
                     isImpostor = GetOffsetFromClass("GameData.PlayerInfo", "IsImpostor"),
                 };
                 AddVal(structs, "UINT", "id", lookup.PlayerId, ref curOffset);
-                AddVal(structs, "UINT", "name", lookup_old._playerNamePtr == -1 ? GetOffsetFromClass("GameData.PlayerInfo", "PlayerName") : lookup_old._playerNamePtr, ref curOffset);
+                AddVal(structs, "UINT", "name", lookup_old._playerNamePtr == -1 ? lookup_old._playerNamePtr : GetOffsetFromClass("GameData.PlayerInfo", "PlayerName"), ref curOffset);
                 AddVal(structs, "UINT", "color", lookup_old.colorId, ref curOffset);
                 AddVal(structs, "UINT", "hat", lookup_old.hatId, ref curOffset);
                 AddVal(structs, "UINT", "pet", lookup_old.petId, ref curOffset);
@@ -278,14 +316,19 @@ namespace BCL_OffsetGenerator
 
         private void HandleClassProps<T>(T obj, string prefix = "")
         {
-            foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
+            Parallel.ForEach(obj.GetType().GetProperties(), (propertyInfo) =>
             {
                 HandleOffset(prefix + propertyInfo.Name);
-            }
+
+            });
+            //foreach (PropertyInfo propertyInfo in )
+            //{
+            //HandleOffset(prefix + propertyInfo.Name);
+            //}
         }
         private long GetOffsetFromClass(string classname, string offsetname)
         {
-            var classIndex = classfile.GetLineIndex(o => o.Contains("class " + classname + " "));
+            var classIndex = _classfile.GetLineIndex(o => o.Contains("class " + classname + " "));
             if (classIndex == -1)
             {
                 Console.WriteLine("Offset->class not found {0}->{1}", classname, offsetname);
@@ -293,7 +336,7 @@ namespace BCL_OffsetGenerator
             }
             for (int i = classIndex; i < classIndex + MAX_CLASSLENGTH; i++)
             {
-                var line = classfile[i].Replace(", ", ",").Replace(" static", "").Replace(" readonly", "").Split(" ");
+                var line = _classfile[i].Replace(", ", ",").Replace(" static", "").Replace(" readonly", "").Split(" ");
                 if (line.Length == 5 && line[2] == offsetname + ";")
                 {
                     if (long.TryParse(line[4].Substring(2, line[4].Length - 2), NumberStyles.HexNumber, null, out long result))

@@ -1,0 +1,25 @@
+{
+	"patterns": {
+		"x64": {
+			"broadcastVersion": {
+				"sig": "33 D2 B9 ? ? ? ? 48 83 C4 ? E9 ? ? ? ?",
+				"patternOffset": 3,
+				"addressOffset": 0
+			}
+		},
+		"x86": {
+			"broadcastVersion": {
+				"sig": "6A 00 68 ? ? ? ? E8 ? ? ? ? 83 C4 08 C3",
+				"patternOffset": 3,
+				"addressOffset": 0
+			}
+		}
+	},
+	"versions": {
+		"default": {
+			"version": "NA",
+			"file": "V2022.6.21/offsets.json",
+			"offsetsVersion": 1
+		}
+	}
+}
