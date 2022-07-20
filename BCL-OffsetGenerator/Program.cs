@@ -29,7 +29,7 @@ namespace BCL_OffsetGenerator
             }
 
             var dumper = new GameIll2CppDumper();
-            await dumper.DumpGameFiles(_manifests);
+            dumper.DumpGameFiles(_manifests);
             var gameInfoExtractor = new GameInfoExtractor();
             gameInfoExtractor.FillManifests(_manifests);
 

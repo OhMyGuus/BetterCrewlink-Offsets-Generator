@@ -10,7 +10,7 @@ namespace BCL_OffsetGenerator
 {
     public class GameIll2CppDumper
     {
-        public async Task DumpGameFiles(List<MannifestInfo> manifests)
+        public void DumpGameFiles(List<MannifestInfo> manifests)
         {
             foreach (var manifest in manifests)
             {

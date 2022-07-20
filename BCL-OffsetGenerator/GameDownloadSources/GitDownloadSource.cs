@@ -10,11 +10,13 @@ namespace BCL_OffsetGenerator.GameDownloadSources
     {
         public async Task DownloadManifests(List<MannifestInfo> manifests, bool skipDownload = false)
         {
+            await Task.FromResult(0);
             throw new NotImplementedException();
         }
 
-        public Task<List<MannifestInfo>> FetchManifests()
+        public async Task<List<MannifestInfo>> FetchManifests()
         {
+            await Task.FromResult(0);
             throw new NotImplementedException();
         }
     }

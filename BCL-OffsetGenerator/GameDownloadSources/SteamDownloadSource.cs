@@ -25,14 +25,14 @@ namespace BCL_OffsetGenerator
         public async Task<List<MannifestInfo>> FetchManifests()
         {
             List<MannifestInfo> manifests = new List<MannifestInfo>();
-            const string STEAMDB_URL = "https://steamdb.info/depot/945361/manifests/";
+            const string steamdbUrl = "https://steamdb.info/depot/945361/manifests/";
             var httpHandler = new HttpClientHandler() { UseCookies = true };
             using (HttpClient httpClient = new HttpClient(httpHandler))
             {
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; AcmeInc/1.0)");
-                httpHandler.CookieContainer.Add(new Uri(STEAMDB_URL),
+                httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
                     new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
-                var steamdbHtml = await httpClient.GetStringAsync(STEAMDB_URL);
+                var steamdbHtml = await httpClient.GetStringAsync(steamdbUrl);
                 var htmlDoc = new HtmlDocument();
                 htmlDoc.LoadHtml(steamdbHtml);
                 var notes = htmlDoc.DocumentNode.SelectSingleNode("//div[@id='manifests']").SelectNodes(".//tr");
