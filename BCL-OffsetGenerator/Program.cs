@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using BCL_OffsetGenerator.GameDownloadSources;
 using Newtonsoft.Json;
 using static BCL_OffsetGenerator.LookupJson;
 
@@ -11,7 +12,6 @@ namespace BCL_OffsetGenerator
 {
     class Program
     {
-
         //todo: move this to a class 
         private static List<MannifestInfo> _manifests = new List<MannifestInfo>();
 
@@ -28,10 +28,21 @@ namespace BCL_OffsetGenerator
                 bool newManifests = AddNewManifests(steamManifests, out _);
             }
 
+
+            using (var downloadSource =
+                   new LocalDownloadSource(new LocalDownloadSource.LocalGameSourceConfig() { Path = @"WindowsVersion/" }))
+            {
+                var sourceManifests = await downloadSource.FetchManifests();
+                await downloadSource.DownloadManifests(sourceManifests, false);
+                bool newManifests = AddNewManifests(sourceManifests, out _);
+            }
+
+
             var dumper = new GameIll2CppDumper();
             dumper.DumpGameFiles(_manifests);
             var gameInfoExtractor = new GameInfoExtractor();
             gameInfoExtractor.FillManifests(_manifests);
+            SaveManifest();
 
             await GenerateOffsets();
             SaveManifest();
@@ -43,6 +54,7 @@ namespace BCL_OffsetGenerator
         {
             var newManifests = manifests.Where(o => _manifests.All(b => b.ManifestId != o.ManifestId)).ToList();
             _manifests.AddRange(newManifests);
+            _manifests = _manifests.OrderByDescending(o => o.Date).ToList();
             addedManifests = newManifests;
 
             return newManifests.Count > 0;
@@ -53,7 +65,9 @@ namespace BCL_OffsetGenerator
         {
             if (File.Exists($"{Constants.OUTPUT_PATH}/manifest.json"))
             {
-                _manifests = JsonConvert.DeserializeObject<List<MannifestInfo>>(File.ReadAllText($"{Constants.OUTPUT_PATH}/manifest.json"));
+                _manifests =
+                    (JsonConvert.DeserializeObject<List<MannifestInfo>>(File.ReadAllText($"{Constants.OUTPUT_PATH}/manifest.json"))?.OrderByDescending(o => o.Date)?.ToList() ??
+                     new List<MannifestInfo>());
             }
         }
 
@@ -71,7 +85,7 @@ namespace BCL_OffsetGenerator
             var offsets = new Dictionary<List<MannifestInfo>, string>();
             int index = 0;
             var filteredManifests = _manifests.Where(o =>
-                         !o.Obfucated && o.InnerNetClient != 0 && !string.IsNullOrWhiteSpace(o.Version)).OrderByDescending(o => o.BroadcastVersion);
+                !o.Obfucated && o.InnerNetClient != 0 && !string.IsNullOrWhiteSpace(o.Version)).OrderByDescending(o => o.BroadcastVersion);
             foreach (var manifest in filteredManifests) //.Where(o => o.Version == "V2021.6.30s"))
             {
                 Console.WriteLine("Getting offsets for {0} -> {1}:{2}", manifest.Version, index++, _manifests.Count);
@@ -105,17 +119,19 @@ namespace BCL_OffsetGenerator
             {
                 foreach (var manifest in offsetGen.Key)
                 {
-                    lookup.Versions[manifest.BroadcastVersion.Value.ToString()] = new LookupVersions() { version = "V" + manifest.Version, file = $"V{offsetGen.Key.LastOrDefault().Version}/offsets.json", offsetsVersion = Constants.CURRENT_OFFSET_VERSION };
+                    lookup.Versions[manifest.BroadcastVersion.Value.ToString()] = new LookupVersions()
+                    {
+                        version = "V" + manifest.Version, file = $"V{offsetGen.Key.LastOrDefault().Version}/offsets.json",
+                        offsetsVersion = Constants.CURRENT_OFFSET_VERSION
+                    };
                 }
-
             }
 
             if (lookup.Versions.Count > 1)
                 lookup.Versions["default"] = lookup.Versions.Skip(1).FirstOrDefault().Value;
 
             File.WriteAllText($"{Constants.OUTPUT_PATH}/lookup.json",
-               JsonConvert.SerializeObject(lookup, Formatting.Indented));
-
+                JsonConvert.SerializeObject(lookup, Formatting.Indented));
         }
     }
 }

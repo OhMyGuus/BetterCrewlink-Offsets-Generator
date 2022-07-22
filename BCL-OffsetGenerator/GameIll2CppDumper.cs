@@ -12,10 +12,13 @@ namespace BCL_OffsetGenerator
     {
         public void DumpGameFiles(List<MannifestInfo> manifests)
         {
-            foreach (var manifest in manifests)
+            Parallel.ForEach(manifests, new ParallelOptions
             {
-                CallIll2CppDumper(manifest);
-            }
+                MaxDegreeOfParallelism = 2
+            }, (manifest) =>  {
+                 CallIll2CppDumper(manifest);
+             });
+
         }
 
         private bool DumpedFiles(string folder) => Directory.Exists($"{folder}/dump") && File.Exists($"{folder}/dump/dump.cs") &&

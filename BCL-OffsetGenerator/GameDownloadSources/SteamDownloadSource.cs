@@ -13,7 +13,7 @@ using HtmlAgilityPack;
 
 namespace BCL_OffsetGenerator
 {
-    class SteamDownloadSource : IDisposable, IGameDownloadSource
+    class SteamDownloadSource : IGameDownloadSource
     {
         private readonly SteamAccount _steamAccount;
         private static readonly DateTime ill2cppDate = new DateTime(2019,11,6);

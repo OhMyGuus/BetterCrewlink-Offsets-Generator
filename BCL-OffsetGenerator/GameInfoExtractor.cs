@@ -15,15 +15,13 @@ public class GameInfoExtractor
         Parallel.ForEach(manifests, new ParallelOptions
         {
             MaxDegreeOfParallelism = 20
-        }, manifest =>
-        {
-            FillManifest(manifest);
-        });
+        }, manifest => { FillManifest(manifest, true); });
     }
 
     private void FillManifest(MannifestInfo manifest, bool alwaysGenerate = false)
     {
         var obfucated = manifest.Obfucated;
+        manifest.x64 = isX64(manifest);
         manifest.BroadcastVersion = alwaysGenerate || manifest.BroadcastVersion == null || manifest.BroadcastVersion == 0
             ? GetBroadCastVersion(manifest)
             : manifest.BroadcastVersion;
@@ -34,6 +32,24 @@ public class GameInfoExtractor
         manifest.Version = alwaysGenerate || string.IsNullOrEmpty(manifest.Version) ? GetGameVersion(manifest) : manifest.Version;
     }
 
+
+    private bool isX64(MannifestInfo manifest)
+    {
+        var gameAssamblydll = $"{Constants.AMONGUSFILES_PATH}/{manifest.ManifestId}/GameAssembly.dll";
+        if (!File.Exists(gameAssamblydll))
+        {
+            throw new Exception($"No dll founnd for {manifest.ManifestId}");
+        }
+
+        using FileStream stream = new FileStream(gameAssamblydll, FileMode.Open);
+        var buffer = new byte[5];
+        stream.Position = 0x3C;
+        stream.Read(buffer, 0, 4);
+        stream.Position = BitConverter.ToInt32(buffer) + 0x18;
+        stream.Read(buffer, 0, 2);
+        var magicValue = BitConverter.ToUInt16(buffer);
+        return magicValue == 0x20b;
+    }
 
     private int? GetBroadCastVersion(MannifestInfo manifest)
     {
@@ -57,7 +73,7 @@ public class GameInfoExtractor
 
     private int? FindSignature(byte[] bytes, string signature)
     {
-        var nrs = signature.Split(' ').Select(o => o == "?" ? (byte?)null : byte.Parse(o, NumberStyles.HexNumber)).ToArray();
+        var nrs = signature.Split(' ').Select(o => o == "?" ? (byte?) null : byte.Parse(o, NumberStyles.HexNumber)).ToArray();
         for (int i = 0; i < bytes.Length; i++)
         {
             var tmpi = i;
@@ -74,7 +90,7 @@ public class GameInfoExtractor
 
             return i;
 
-        exitloop:
+            exitloop:
 
             continue;
         }
@@ -116,6 +132,7 @@ public class GameInfoExtractor
         if (!File.Exists($"{Constants.AMONGUSFILES_PATH}/{manifest.ManifestId}/dump/script.json"))
         {
             Console.WriteLine($"No dump found for {manifest.ManifestId}");
+
             throw new Exception($"No dump found for {manifest.ManifestId}");
         }
 

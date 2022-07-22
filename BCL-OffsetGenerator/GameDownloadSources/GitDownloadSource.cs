@@ -19,5 +19,9 @@ namespace BCL_OffsetGenerator.GameDownloadSources
             await Task.FromResult(0);
             throw new NotImplementedException();
         }
+
+        public void Dispose()
+        {
+        }
     }
 }
