@@ -28,8 +28,14 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: Build output
+        name: build-output
         path: BCL-OffsetGenerator/bin/Release/net6.0/
+        
+    - name: Download artifect
+      uses: actions/download-artifact@v3
+      with:
+        name: build-output
+        path: ./artifacts/
         
     - name: Generate release tag
       id: tag
