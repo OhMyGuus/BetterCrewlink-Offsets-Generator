@@ -15,11 +15,11 @@ namespace BCL_OffsetGenerator
 {
     class SteamDownloadSource : IGameDownloadSource
     {
-        private readonly SteamAccount _steamAccount;
+        private readonly SteamDownloadSourceConfig.SteamAccount _steamAccount;
         private static readonly DateTime ill2cppDate = new DateTime(2019,11,6);
-        public SteamDownloadSource(SteamAccount account)
+        public SteamDownloadSource()
         {
-            _steamAccount = account;
+            _steamAccount = Config.Instance.SteamDownloadSourceConfig.account;
         }
 
         public async Task<List<MannifestInfo>> FetchManifests()
@@ -123,6 +123,7 @@ namespace BCL_OffsetGenerator
 
             return downloadedAllFiles(folder);
         }
+        public static bool Enabled => Config.Instance.SteamDownloadSourceConfig.Enabled;
 
         public void Dispose()
         {
@@ -130,10 +131,5 @@ namespace BCL_OffsetGenerator
         }
     }
 
-    internal class SteamAccount
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public string SteamDBCookie { get; set; }
-    }
+    
 }

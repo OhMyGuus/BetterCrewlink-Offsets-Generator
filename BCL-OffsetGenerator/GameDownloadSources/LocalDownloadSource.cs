@@ -7,12 +7,7 @@ using Newtonsoft.Json;
 namespace BCL_OffsetGenerator.GameDownloadSources;
 public class LocalDownloadSource : IGameDownloadSource
 {
-    private readonly LocalGameSourceConfig _config;
-
-    public LocalDownloadSource(LocalGameSourceConfig config)
-    {
-        _config = config;
-    }
+    private LocalGameSourceConfig _config => Config.Instance.LocalGameSourceConfig;
 
     public async Task<List<MannifestInfo>> FetchManifests()
     {
@@ -49,11 +44,7 @@ public class LocalDownloadSource : IGameDownloadSource
     }
 
 
-    public class LocalGameSourceConfig
-    {
-        public bool Enabled { get; set; }
-        public string Path { get; set; }
-    }
+    public static bool Enabled => Config.Instance.LocalGameSourceConfig.Enabled;
 
     public void Dispose()
     {

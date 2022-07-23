@@ -20,23 +20,18 @@ namespace BCL_OffsetGenerator
         static async Task Main(string[] args)
         {
             ReadManifests();
-            using (var gameSource =
-                   new SteamDownloadSource(JsonConvert.DeserializeObject<SteamAccount>(File.ReadAllText("SteamAccount.json"))))
-            {
-                var steamManifests = await gameSource.FetchManifests();
-                await gameSource.DownloadManifests(steamManifests, false);
-                bool newManifests = AddNewManifests(steamManifests, out _);
-            }
+            Config.Instance.Load("config.json");
 
-
-            using (var downloadSource =
-                   new LocalDownloadSource(new LocalDownloadSource.LocalGameSourceConfig() { Path = @"WindowsVersion/" }))
+            foreach (var type in IGameDownloadSource.DownloadSources)
             {
+                if (!(type?.GetProperty("Enabled")?.GetValue(null) as bool? ?? false) || 
+                    Activator.CreateInstance(type) is not IGameDownloadSource downloadSource)
+                    continue;
+
                 var sourceManifests = await downloadSource.FetchManifests();
                 await downloadSource.DownloadManifests(sourceManifests, false);
                 bool newManifests = AddNewManifests(sourceManifests, out _);
             }
-
 
             var dumper = new GameIll2CppDumper();
             dumper.DumpGameFiles(_manifests);
@@ -66,7 +61,8 @@ namespace BCL_OffsetGenerator
             if (File.Exists($"{Constants.OUTPUT_PATH}/manifest.json"))
             {
                 _manifests =
-                    (JsonConvert.DeserializeObject<List<MannifestInfo>>(File.ReadAllText($"{Constants.OUTPUT_PATH}/manifest.json"))?.OrderByDescending(o => o.Date)?.ToList() ??
+                    (JsonConvert.DeserializeObject<List<MannifestInfo>>(File.ReadAllText($"{Constants.OUTPUT_PATH}/manifest.json"))
+                         ?.OrderByDescending(o => o.Date)?.ToList() ??
                      new List<MannifestInfo>());
             }
         }
