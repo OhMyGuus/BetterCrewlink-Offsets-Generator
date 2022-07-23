@@ -39,7 +39,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: BCL-OffsetGenerator/bin/Release/net6.0/
+        files: ./artifacts/*.zip
         tag_name: ${{ steps.tag.outputs.release_tag }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
