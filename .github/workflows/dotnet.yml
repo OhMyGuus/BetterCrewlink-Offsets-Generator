@@ -1,7 +1,9 @@
-name: Build app
+name: Release app
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ "test" ]
 jobs:
   build:
 
@@ -33,7 +35,7 @@ jobs:
     - name: Zip files
       uses: vimtor/action-zip@v1
       with:
-        files: /*
+        files: DepotDownloader/*
         dest: release.zip
         recursive: false
         
