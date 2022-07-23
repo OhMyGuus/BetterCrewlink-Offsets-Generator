@@ -1,0 +1,48 @@
+name: Release app
+
+on:
+  workflow_dispatch:
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with: 
+        submodules: true
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-output
+        path: BCL-OffsetGenerator/bin/Release/net6.0/
+      
+    - name: Archive Release
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        filename: 'release.zip'
+        directory: BCL-OffsetGenerator/bin/Release/net6.0/
+        
+    - name: Generate release tag
+      id: tag
+      run: |
+          echo "::set-output name=release_tag::Release_$(date +"%Y.%m.%d_%H-%M")"
+        
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files:  BCL-OffsetGenerator/bin/Release/net6.0/release.zip
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
