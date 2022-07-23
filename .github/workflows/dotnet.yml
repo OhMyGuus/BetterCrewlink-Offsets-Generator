@@ -30,7 +30,7 @@ jobs:
     - name: Zip files
       uses: vimtor/action-zip@v1
       with:
-        files: ./*
+        files: /*
         dest: release.zip
         recursive: false
         
