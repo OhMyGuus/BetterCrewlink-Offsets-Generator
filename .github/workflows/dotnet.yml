@@ -37,7 +37,7 @@ jobs:
       with:
         type: 'zip'
         filename: 'release.zip'
-        path: BCL-OffsetGenerator/bin/Release/net6.0/
+        directory: BCL-OffsetGenerator/bin/Release/net6.0/
         
     - name: Generate release tag
       id: tag
@@ -47,7 +47,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: release.zip
+        files:  BCL-OffsetGenerator/bin/Release/net6.0/release.zip
         tag_name: ${{ steps.tag.outputs.release_tag }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
