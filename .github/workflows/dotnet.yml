@@ -32,6 +32,7 @@ jobs:
       with:
         files: ./*
         dest: release.zip
+        recursive: false
         
     - name: Generate release tag
       id: tag
