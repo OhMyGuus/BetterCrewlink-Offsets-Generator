@@ -25,10 +25,13 @@ jobs:
       with:
         name: build-output
         path: BCL-OffsetGenerator/bin/Release/net6.0/
-        
-    - uses: montudor/action-zip@v1
+      
+      
+    - name: Zip files
+      uses: vimtor/action-zip@v1
       with:
-        args: zip -qq -r release.zip ./BCL-OffsetGenerator/bin/Release/net6.0/*
+        files: BCL-OffsetGenerator/bin/Release/net6.0/*
+        dest: release.zip
         
     - name: Generate release tag
       id: tag
