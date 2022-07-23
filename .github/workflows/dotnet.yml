@@ -30,7 +30,7 @@ jobs:
     - name: Zip files
       uses: vimtor/action-zip@v1
       with:
-        files: BCL-OffsetGenerator/bin/Release/net6.0/*
+        files: ./*
         dest: release.zip
         
     - name: Generate release tag
