@@ -26,11 +26,9 @@ jobs:
         name: build-output
         path: BCL-OffsetGenerator/bin/Release/net6.0/
         
-    - name: Download artifect
-      uses: actions/download-artifact@v3
+    - uses: montudor/action-zip@v1
       with:
-        name: build-output
-        path: artifacts
+        args: zip -qq -r release.zip BCL-OffsetGenerator/bin/Release/net6.0/
         
     - name: Generate release tag
       id: tag
@@ -40,7 +38,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: artifacts/*
+        files: release.zip
         tag_name: ${{ steps.tag.outputs.release_tag }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
