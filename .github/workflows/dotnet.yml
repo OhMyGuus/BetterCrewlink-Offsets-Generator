@@ -28,7 +28,7 @@ jobs:
         
     - uses: montudor/action-zip@v1
       with:
-        args: zip -qq release.zip BCL-OffsetGenerator/bin/Release/net6.0/
+        args: zip -qq release.zip BCL-OffsetGenerator/bin/Release/net6.0/*
         
     - name: Generate release tag
       id: tag
