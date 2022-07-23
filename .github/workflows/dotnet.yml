@@ -37,7 +37,7 @@ jobs:
       with:
         type: 'zip'
         filename: 'release.zip'
-        exclusions: '*.git* /*node_modules/* .editorconfig'
+        directory: BCL-OffsetGenerator/bin/Release/net6.0/
         
     - name: Generate release tag
       id: tag
