@@ -35,7 +35,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: build-output
-        path: ./artifacts/
+        path: /artifacts/
         
     - name: Generate release tag
       id: tag
@@ -45,7 +45,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: ./artifacts/*.zip
+        files: /artifacts/*.zip
         tag_name: ${{ steps.tag.outputs.release_tag }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
