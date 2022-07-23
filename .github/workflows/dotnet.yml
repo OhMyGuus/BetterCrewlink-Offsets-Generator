@@ -37,7 +37,7 @@ jobs:
       with:
         type: 'zip'
         filename: 'release.zip'
-        directory: BCL-OffsetGenerator/bin/Release/net6.0/
+        path: BCL-OffsetGenerator/bin/Release/net6.0/
         
     - name: Generate release tag
       id: tag
