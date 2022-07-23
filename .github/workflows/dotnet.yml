@@ -32,12 +32,12 @@ jobs:
       run: |
         ls -la
       
-    - name: Zip files
-      uses: vimtor/action-zip@v1
+    - name: Archive Release
+      uses: thedoctor0/zip-release@main
       with:
-        files: DepotDownloader/*
-        dest: release.zip
-        recursive: false
+        type: 'zip'
+        filename: 'release.zip'
+        exclusions: '*.git* /*node_modules/* .editorconfig'
         
     - name: Generate release tag
       id: tag
