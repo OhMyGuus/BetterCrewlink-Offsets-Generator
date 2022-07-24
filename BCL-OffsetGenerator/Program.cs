@@ -5,27 +5,32 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using BCL_OffsetGenerator.GameDownloadSources;
+using CommandLine;
 using Newtonsoft.Json;
 using static BCL_OffsetGenerator.LookupJson;
 
 namespace BCL_OffsetGenerator
 {
+
     class Program
     {
         //todo: move this to a class 
         private static List<MannifestInfo> _manifests = new List<MannifestInfo>();
 
-
         //todo: allow arguments and move certain things to other classes.
         static async Task Main(string[] args)
         {
             Console.WriteLine("Starting BetterCrewlink Offset generator");
+         
             ReadManifests();
             Config.Instance.Load("config.json");
 
+            if (!Config.Instance.LoadArgs(args))
+                return;
+
             foreach (var type in IGameDownloadSource.DownloadSources)
             {
-                if (!(type?.GetProperty("Enabled")?.GetValue(null) as bool? ?? false) || 
+                if (!(type?.GetProperty("Enabled")?.GetValue(null) as bool? ?? false) ||
                     Activator.CreateInstance(type) is not IGameDownloadSource downloadSource)
                     continue;
 
