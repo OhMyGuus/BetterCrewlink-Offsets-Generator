@@ -19,6 +19,7 @@ namespace BCL_OffsetGenerator
         //todo: allow arguments and move certain things to other classes.
         static async Task Main(string[] args)
         {
+            Console.WriteLine("Starting BetterCrewlink Offset generator");
             ReadManifests();
             Config.Instance.Load("config.json");
 
