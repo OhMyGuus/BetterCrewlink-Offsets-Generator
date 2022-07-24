@@ -33,6 +33,7 @@ namespace BCL_OffsetGenerator
                 if (!(type?.GetProperty("Enabled")?.GetValue(null) as bool? ?? false) ||
                     Activator.CreateInstance(type) is not IGameDownloadSource downloadSource)
                     continue;
+                Console.WriteLine("Starting source: {0}", type);
 
                 var sourceManifests = await downloadSource.FetchManifests();
                 await downloadSource.DownloadManifests(sourceManifests, false);
