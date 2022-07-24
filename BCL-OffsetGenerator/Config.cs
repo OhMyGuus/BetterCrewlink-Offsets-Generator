@@ -51,7 +51,7 @@ internal class Config
             Instance.LocalGameSourceConfig.Enabled = commandConfig.LocalEnabled ?? Instance.LocalGameSourceConfig.Enabled;
             Instance.LocalGameSourceConfig.Path = commandConfig.LocalPath ?? Instance.LocalGameSourceConfig.Path;
             Instance.SteamDownloadSourceConfig.account.Username =
-                commandConfig.SteamPassword ?? Instance.SteamDownloadSourceConfig.account.Username;
+                commandConfig.SteamUsername ?? Instance.SteamDownloadSourceConfig.account.Username;
             Instance.SteamDownloadSourceConfig.account.Password =
                 commandConfig.SteamPassword ?? Instance.SteamDownloadSourceConfig.account.Password;
             Instance.SteamDownloadSourceConfig.account.SteamDBCookie =
