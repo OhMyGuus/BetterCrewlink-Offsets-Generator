@@ -15,7 +15,6 @@ namespace BCL_OffsetGenerator
         private static Offsets _baseOffsetsx64;
         private static Offsets _baseOffsetsx86;
 
-        private Offsets _baseOffsets;
 
         private Offsets _offsets;
 
@@ -26,19 +25,14 @@ namespace BCL_OffsetGenerator
         public GameOffsetsGenerator(MannifestInfo manifest)
         {
             _manifest = manifest;
-            _baseOffsets = GetbaseOffsets();
             _classfile = File.ReadAllLines($"{Constants.AMONGUSFILES_PATH}/{manifest.ManifestId}/dump/dump.cs");
-            _offsets = _baseOffsets with { };
+            _offsets = GetbaseOffsets() with { };
         }
-
-        private void Cache()
-        {
-
-        }
-
         private Offsets GetbaseOffsets()
         {
-            var getOffsets = () => JsonConvert.DeserializeObject<Offsets>(File.ReadAllText($"basefiles/baseoffsets_{(_manifest.x64 ? "x64" : "x86")}.json"));
+            _baseOffsetsx64 = null;
+            _baseOffsetsx86 = null;
+            var getOffsets = () => JsonConvert.DeserializeObject<Offsets>(File.ReadAllText($"BaseFiles/baseoffsets_{(_manifest.x64 ? "x64" : "x86")}.json"));
             return _manifest.x64 ? _baseOffsetsx64 ?? (_baseOffsetsx64 = getOffsets()) : _baseOffsetsx86 ?? (_baseOffsetsx86 = getOffsets());
         }
 
@@ -80,7 +74,7 @@ namespace BCL_OffsetGenerator
                     _offsets.door_isOpen = GetOffsetFromClass("PlainDoor", "Open");
                     break;
                 case "deconDoorUpperOpen":
-                    _offsets.deconDoorLowerOpen = new List<long> { GetOffsetFromClass("DeconSystem", "UpperDoor"), _offsets.door_isOpen };
+                    _offsets.deconDoorUpperOpen = new List<long> { GetOffsetFromClass("DeconSystem", "UpperDoor"), _offsets.door_isOpen };
                     break;
                 case "deconDoorLowerOpen":
                     _offsets.deconDoorLowerOpen = new List<long> { GetOffsetFromClass("DeconSystem", "LowerDoor"), _offsets.door_isOpen };

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using BCL_OffsetGenerator.GameDownloadSources;
 using CommandLine;
@@ -11,7 +10,6 @@ using static BCL_OffsetGenerator.LookupJson;
 
 namespace BCL_OffsetGenerator
 {
-
     class Program
     {
         //todo: move this to a class 
@@ -20,9 +18,14 @@ namespace BCL_OffsetGenerator
         //todo: allow arguments and move certain things to other classes.
         static async Task Main(string[] args)
         {
+        
             Console.WriteLine("Starting BetterCrewlink Offset generator");
-         
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc
+            };
             ReadManifests();
+            SaveManifest();
             Config.Instance.Load("config.json");
 
             if (!Config.Instance.LoadArgs(args))
@@ -33,11 +36,22 @@ namespace BCL_OffsetGenerator
                 if (!(type?.GetProperty("Enabled")?.GetValue(null) as bool? ?? false) ||
                     Activator.CreateInstance(type) is not IGameDownloadSource downloadSource)
                     continue;
-                Console.WriteLine("Starting source: {0}", type);
 
-                var sourceManifests = await downloadSource.FetchManifests();
-                await downloadSource.DownloadManifests(sourceManifests, false);
-                bool newManifests = AddNewManifests(sourceManifests, out _);
+                using (downloadSource)
+                {
+                    Console.WriteLine("Starting source: {0}", type);
+
+                    var sourceManifests = await downloadSource.FetchManifests();
+                    if(sourceManifests == null)
+                        continue;
+                    //foreach (var manifest in sourceManifests)
+                    //{
+                    //    // new MannifestInfo(){ ManifestId = manifest.ManifestId, x64 = manifest.x64, Date = manifest.Date, Version = manifest.Version, Obfucated = manifest.Obfucated, BroadcastVersion = manifest.BroadcastVersion, InnerNetClient = manifest.InnerNetClient};
+                    //    Console.WriteLine($" new MannifestInfo(){{ ManifestId = {manifest.ManifestId}, x64 = {manifest.x64.ToString().ToLower()}, Date = DateTime.Parse(\"{manifest.Date.Value.ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'")}\") }},");
+                    //}
+                    await downloadSource.DownloadManifests(sourceManifests, false);
+                    bool newManifests = AddNewManifests(sourceManifests, out _);
+                }
             }
 
             var dumper = new GameIll2CppDumper();
@@ -65,10 +79,10 @@ namespace BCL_OffsetGenerator
         //todo: move
         private static void ReadManifests()
         {
-            if (File.Exists($"{Constants.OUTPUT_PATH}/manifest.json"))
+            if (File.Exists($"{Constants.WORKINGDIRECTORY_PATH}/manifest.json"))
             {
                 _manifests =
-                    (JsonConvert.DeserializeObject<List<MannifestInfo>>(File.ReadAllText($"{Constants.OUTPUT_PATH}/manifest.json"))
+                    (JsonConvert.DeserializeObject<List<MannifestInfo>>(File.ReadAllText($"{Constants.WORKINGDIRECTORY_PATH}/manifest.json"))
                          ?.OrderByDescending(o => o.Date)?.ToList() ??
                      new List<MannifestInfo>());
             }
@@ -77,7 +91,9 @@ namespace BCL_OffsetGenerator
         //todo: move
         private static void SaveManifest()
         {
+            new FileInfo($"{Constants.WORKINGDIRECTORY_PATH}/manifest.json")?.Directory?.Create();
             new FileInfo($"{Constants.OUTPUT_PATH}/manifest.json")?.Directory?.Create();
+            File.WriteAllText($"{Constants.WORKINGDIRECTORY_PATH}/manifest.json", JsonConvert.SerializeObject(_manifests, Formatting.Indented));
             File.WriteAllText($"{Constants.OUTPUT_PATH}/manifest.json", JsonConvert.SerializeObject(_manifests, Formatting.Indented));
         }
 
@@ -108,10 +124,10 @@ namespace BCL_OffsetGenerator
             foreach (var item in offsets)
             {
                 var manifest = item.Key.LastOrDefault();
-                var path = $"{Constants.OUTPUT_PATH}/offsets/{(manifest.x64 ? "x64" : "x86")}/V{manifest.Version}/";
+                var path = $"{Constants.OUTPUT_PATH}/offsets/{(manifest.x64 ? "x64" : "x86")}/{manifest.VersionWithoutGame}/";
                 Directory.CreateDirectory(path);
                 File.WriteAllText(path + "manifests.json",
-                    System.Text.Json.JsonSerializer.Serialize(item.Key, options: new JsonSerializerOptions { WriteIndented = true }));
+                 JsonConvert.SerializeObject(item.Key, Formatting.Indented));
                 File.WriteAllText(path + "offsets.json", item.Value);
             }
 
@@ -124,7 +140,7 @@ namespace BCL_OffsetGenerator
                 {
                     lookup.Versions[manifest.BroadcastVersion.Value.ToString()] = new LookupVersions()
                     {
-                        version = "V" + manifest.Version, file = $"V{offsetGen.Key.LastOrDefault().Version}/offsets.json",
+                        version = manifest.VersionWithoutGame, file = $"{offsetGen.Key.LastOrDefault().VersionWithoutGame}/offsets.json",
                         offsetsVersion = Constants.CURRENT_OFFSET_VERSION
                     };
                 }

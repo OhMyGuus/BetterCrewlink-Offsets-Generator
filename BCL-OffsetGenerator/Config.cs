@@ -58,7 +58,8 @@ internal class Config
                 commandConfig.SteamDBCookie ?? Instance.SteamDownloadSourceConfig.account.SteamDBCookie;
             Instance.SteamDownloadSourceConfig.Enabled = commandConfig.SteamEnabled ?? Instance.SteamDownloadSourceConfig.Enabled;
         });
-      
+        Save("config.json");
+
         return !result.Errors.Any();
     }
 }

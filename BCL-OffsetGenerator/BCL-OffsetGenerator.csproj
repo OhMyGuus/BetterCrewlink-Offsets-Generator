@@ -36,9 +36,13 @@
     <None Update="ill2cppdumper\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="SteamAccount.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Reference Include="Il2CppDumper, Version=6.7.25.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>ill2cppdumper\Il2CppDumper.exe</HintPath>
+    </Reference>
   </ItemGroup>
 
  

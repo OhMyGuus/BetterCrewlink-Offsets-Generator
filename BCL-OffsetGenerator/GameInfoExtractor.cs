@@ -118,7 +118,7 @@ public class GameInfoExtractor
                 var lngthOffset = i - 4;
                 var lgth = checkBytes[lngthOffset];
 
-                return Encoding.UTF8.GetString(checkBytes.Skip(i).Take(lgth).ToArray());
+                return "V" + Encoding.UTF8.GetString(checkBytes.Skip(i).Take(lgth).ToArray()) + (manifest.x64? "m" : "s");
             }
         }
 
