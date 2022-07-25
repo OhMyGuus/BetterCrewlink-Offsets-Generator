@@ -122,8 +122,11 @@ namespace BCL_OffsetGenerator
 
     public class Signature
     {
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string sig { get; set; }
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public long patternOffset { get; set; }
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public long addressOffset { get; set; }
     }
 
