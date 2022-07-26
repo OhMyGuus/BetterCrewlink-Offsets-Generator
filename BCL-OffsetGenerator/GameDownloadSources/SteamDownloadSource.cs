@@ -37,6 +37,9 @@ namespace BCL_OffsetGenerator
                 httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
                     new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
                 var steamdbHtml = await httpClient.GetStringAsync(steamdbUrl);
+                //https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994
+                var tmp = await httpClient.GetStringAsync("https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994");
+
                 var htmlDoc = new HtmlDocument();
                 htmlDoc.LoadHtml(steamdbHtml);
                 var notes = htmlDoc.DocumentNode.SelectSingleNode("//div[@id='manifests']").SelectNodes(".//tr");
