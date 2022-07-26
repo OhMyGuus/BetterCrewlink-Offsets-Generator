@@ -4,6 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>BCL_OffsetGenerator</RootNamespace>
+	  <configuration>
+		  <system.net>
+			  <settings>
+				  <ipv6 enabled="false"/>
+			  </settings>
+		  </system.net>
+	  </configuration>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,6 +52,5 @@
     </Reference>
   </ItemGroup>
 
- 
- 
+	
 </Project>

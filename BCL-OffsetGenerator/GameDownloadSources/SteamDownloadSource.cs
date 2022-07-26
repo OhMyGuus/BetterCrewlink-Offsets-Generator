@@ -29,7 +29,6 @@ namespace BCL_OffsetGenerator
         {
             List<MannifestInfo> manifests = new List<MannifestInfo>();
             const string steamdbUrl = "https://steamdb.info/depot/945361/manifests/";
-
             var httpHandler = new HttpClientHandler() { UseCookies = true, Proxy = GetProxy(), UseProxy = _config.Proxy.Enabled, AutomaticDecompression = DecompressionMethods.GZip };
             using (HttpClient httpClient = new HttpClient(httpHandler))
             {
