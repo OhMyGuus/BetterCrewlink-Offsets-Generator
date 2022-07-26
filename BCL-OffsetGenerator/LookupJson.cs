@@ -22,22 +22,7 @@ public class LookupJson
 
     public class BasePatterns
     {
-        public MemoryPattern broadcastVersion { get; set; }
-    }
-
-    public class MemoryPattern
-    {
-        public string sig { get; set; }
-        public int patternOffset { get; set; }
-        public int addressOffset { get; set; }
-    }
-
-
-    public class Signature
-    {
-        public string sig { get; set; }
-        public int patternOffset { get; set; }
-        public int addressOffset { get; set; }
+        public Signature broadcastVersion { get; set; }
     }
 
     public class LookupVersions
