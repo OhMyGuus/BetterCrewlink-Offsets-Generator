@@ -36,9 +36,9 @@ namespace BCL_OffsetGenerator
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36");
                 httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
                     new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
+                var tmp = await httpClient.GetStringAsync("https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994");
                 var steamdbHtml = await httpClient.GetStringAsync(steamdbUrl);
                 //https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994
-                var tmp = await httpClient.GetStringAsync("https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994");
 
                 var htmlDoc = new HtmlDocument();
                 htmlDoc.LoadHtml(steamdbHtml);
