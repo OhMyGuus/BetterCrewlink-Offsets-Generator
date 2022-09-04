@@ -28,12 +28,15 @@ namespace BCL_OffsetGenerator
         public async Task<List<MannifestInfo>> FetchManifests()
         {
             List<MannifestInfo> manifests = new List<MannifestInfo>();
-            const string steamdbUrl = "https://steamdb.info/depot/945361/manifests/";
+            const string steamdbUrl = "https://steamdb.info/depot/935361/manifests/";
 
             var httpHandler = new HttpClientHandler() { UseCookies = true, Proxy = GetProxy(), UseProxy = _config.Proxy.Enabled };
             using (HttpClient httpClient = new HttpClient(httpHandler))
             {
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36");
+                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+                httpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("nl,en;q=0.9,en-US;q=0.8");
+                //httpClient.DefaultRequestHeaders.AcceptEncoding.ParseAdd("gzip, deflate, br");
                 httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
                     new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
                 var steamdbHtml = await httpClient.GetStringAsync(steamdbUrl);
