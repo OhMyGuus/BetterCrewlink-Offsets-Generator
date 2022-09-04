@@ -28,7 +28,7 @@ namespace BCL_OffsetGenerator
         public async Task<List<MannifestInfo>> FetchManifests()
         {
             List<MannifestInfo> manifests = new List<MannifestInfo>();
-            const string steamdbUrl = "https://steamdb.info/depot/935361/manifests/";
+            const string steamdbUrl = "https://steamdb.info/depot/945361/manifests/";
 
             var httpHandler = new HttpClientHandler() { UseCookies = true, Proxy = GetProxy(), UseProxy = _config.Proxy.Enabled };
             using (HttpClient httpClient = new HttpClient(httpHandler))
