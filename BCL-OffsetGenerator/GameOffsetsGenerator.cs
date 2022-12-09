@@ -101,13 +101,21 @@ namespace BCL_OffsetGenerator
                     _offsets.palette_shadowColor[0] = GetOffsetFromClass("Palette", "ShadowColors");
                     break;
                 case "lightRadius":
-                    _offsets.lightRadius = new List<long> { GetOffsetFromClass("PlayerControl", "myLight"), GetOffsetFromClass("LightSource", "LightRadius") };
+                    _offsets.lightRadius = new List<long> { GetOffsetFromClass("PlayerControl", "myLight", "lightSource"), GetOffsetFromClass("LightSource", "LightRadius", "raycastTolerance") };
                     break;
                 case "gameOptions_MapId":
                     _offsets.gameOptions_MapId[0] = GetOffsetFromClass("GameOptionsData", "MapId");
+                    if (_offsets.gameOptions_MapId[0] == -1)
+                    {
+                        _offsets.gameOptions_MapId[0] = GetOffsetFromClass("HideNSeekGameOptionsV07", "<MapId>k__BackingField");
+                    }
                     break;
                 case "gameOptions_MaxPLayers":
                     _offsets.gameOptions_MaxPLayers[0] = GetOffsetFromClass("GameOptionsData", "MaxPlayers");
+                    if (_offsets.gameOptions_MaxPLayers[0] == -1)
+                    {
+                        _offsets.gameOptions_MaxPLayers[0] = GetOffsetFromClass("HideNSeekGameOptionsV07", "<MaxPlayers>k__BackingField");
+                    }
                     break;
                 case "serverManager_currentServer": // still needs work and double check
                                                     //  offsets.serverManager_currentServer[0] = GetOffsetFromClass("GameOptionsData", "<CurrentRegion>k__BackingField");
@@ -142,7 +150,7 @@ namespace BCL_OffsetGenerator
                     _offsets.innerNetClient.mainMenuScene = GetOffsetFromClass("AmongUsClient", "MainMenuScene");
                     break;
                 case "player.isLocal":
-                    _offsets.player.isLocal[0] = GetOffsetFromClass("PlayerControl", "myLight");
+                    _offsets.player.isLocal[0] = GetOffsetFromClass("PlayerControl", "myLight", "lightSource");
                     break;
                 case "player.isDummy":
                     _offsets.player.isDummy[0] = GetOffsetFromClass("PlayerControl", "isDummy");
@@ -320,31 +328,36 @@ namespace BCL_OffsetGenerator
             //HandleOffset(prefix + propertyInfo.Name);
             //}
         }
-        private long GetOffsetFromClass(string classname, string offsetname)
+        private long GetOffsetFromClass(string classname, params string[] offsetnames)
         {
-            var classIndex = _classfile.GetLineIndex(o => o.Contains("class " + classname + " "));
-            if (classIndex == -1)
+            for (int k = 0; k < offsetnames.Length; k++)
             {
-                Console.WriteLine("Offset->class not found {0}->{1}", classname, offsetname);
-                return -1;
-            }
-            for (int i = classIndex; i < classIndex + MAX_CLASSLENGTH; i++)
-            {
-                var line = _classfile[i].Replace(", ", ",").Replace(" static", "").Replace(" readonly", "").Split(" ");
-                if (line.Length == 5 && line[2] == offsetname + ";")
+                var offsetname = offsetnames[k];
+                var classIndex = _classfile.GetLineIndex(o => o.Contains("class " + classname + " "));
+                if (classIndex == -1)
                 {
-                    if (long.TryParse(line[4].Substring(2, line[4].Length - 2), NumberStyles.HexNumber, null, out long result))
+                    Console.WriteLine("Offset->class not found {0}->{1}", classname, offsetname);
+                    continue;
+                }
+                for (int i = classIndex; i < classIndex + MAX_CLASSLENGTH; i++)
+                {
+                    var line = _classfile[i].Replace(", ", ",").Replace(" static", "").Replace(" readonly", "").Split(" ");
+                    if (line.Length == 5 && line[2] == offsetname + ";")
                     {
-                        return result;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Offset not found {0}->{1}", classname, offsetname);
-                        return -1;
+                        if (long.TryParse(line[4].Substring(2, line[4].Length - 2), NumberStyles.HexNumber, null, out long result))
+                        {
+                            return result;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Offset not found {0}->{1}", classname, offsetname);
+                            continue;
+                        }
                     }
                 }
+                Console.WriteLine("Offset not found {0}->{1}", classname, offsetname);
+                continue;
             }
-            Console.WriteLine("Offset not found {0}->{1}", classname, offsetname);
             return -1;
         }
 

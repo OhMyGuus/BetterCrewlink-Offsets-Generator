@@ -161,12 +161,7 @@ public class GameInfoExtractor
         }
         else
         {
-            var test = File.ReadAllLines($"{Constants.AMONGUSFILES_PATH}/{manifest.ManifestId}/dump/dump.cs");
-            var gameModeLine = test.Select((value, index) => new { value, index = index + 1 })
-                .Where(pair => pair.value.Contains(" GameMode;"))
-                .Select(pair => pair.index)
-                .FirstOrDefault() - 1;
-            obfucated = !test[gameModeLine].Contains("GameModes");
+
         }
 
         //  List<ScriptInfo>
