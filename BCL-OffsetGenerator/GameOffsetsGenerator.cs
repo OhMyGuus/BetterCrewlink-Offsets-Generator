@@ -171,11 +171,11 @@ namespace BCL_OffsetGenerator
                     break;
                 case "player.remoteX":
                     _offsets.player.remoteX[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
-                    _offsets.player.remoteX[1] = GetOffsetFromClass("CustomNetworkTransform", "targetSyncPosition") + 4;
+                    _offsets.player.remoteX[1] = GetOffsetFromClass("CustomNetworkTransform", "targetSyncPosition");
                     break;
                 case "player.remoteY":
                     _offsets.player.remoteY[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
-                    _offsets.player.remoteY[1] = GetOffsetFromClass("CustomNetworkTransform", "targetSyncPosition");
+                    _offsets.player.remoteY[1] = GetOffsetFromClass("CustomNetworkTransform", "targetSyncPosition") + 4;
                     break;
                 case "player.inVent":
                     _offsets.player.inVent[0] = GetOffsetFromClass("PlayerControl", "inVent");
