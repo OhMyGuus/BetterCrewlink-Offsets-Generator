@@ -101,7 +101,7 @@ namespace BCL_OffsetGenerator
                     _offsets.palette_shadowColor[0] = GetOffsetFromClass("Palette", "ShadowColors");
                     break;
                 case "lightRadius":
-                    _offsets.lightRadius = new List<long> { GetOffsetFromClass("PlayerControl", "myLight", "lightSource"), GetOffsetFromClass("LightSource", "LightRadius", "raycastTolerance") };
+                    _offsets.lightRadius = new List<long> { GetOffsetFromClass("PlayerControl", "myLight", "lightSource"), GetOffsetFromClass("LightSource", "viewDistance", "raycastTolerance") };
                     break;
                 case "gameOptions_MapId":
                     _offsets.gameOptions_MapId[0] = GetOffsetFromClass("GameOptionsData", "MapId");
