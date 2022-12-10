@@ -108,6 +108,12 @@ namespace BCL_OffsetGenerator
                     if (_offsets.gameOptions_MapId[0] == -1)
                     {
                         _offsets.gameOptions_MapId[0] = GetOffsetFromClass("HideNSeekGameOptionsV07", "<MapId>k__BackingField");
+                        if (_offsets.gameOptions_MapId[0] != -1)
+                        {
+                            _offsets.newGameOptions = true;
+                            _offsets.gameoptionsData[2] = 0;
+                            _offsets.gameoptionsData.Add(GetOffsetFromClass("GameOptionsManager", "currentGameOptions"));
+                        }
                     }
                     break;
                 case "gameOptions_MaxPLayers":
@@ -157,15 +163,19 @@ namespace BCL_OffsetGenerator
                     break;
                 case "player.localX":
                     _offsets.player.localX[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
+                    _offsets.player.localX[1] = GetOffsetFromClass("CustomNetworkTransform", "prevPosSent");
                     break;
                 case "player.localY":
                     _offsets.player.localY[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
+                    _offsets.player.localY[1] = GetOffsetFromClass("CustomNetworkTransform", "prevPosSent") + 4;
                     break;
                 case "player.remoteX":
                     _offsets.player.remoteX[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
+                    _offsets.player.remoteX[1] = GetOffsetFromClass("CustomNetworkTransform", "targetSyncPosition") + 4;
                     break;
                 case "player.remoteY":
                     _offsets.player.remoteY[0] = GetOffsetFromClass("PlayerControl", "NetTransform");
+                    _offsets.player.remoteY[1] = GetOffsetFromClass("CustomNetworkTransform", "targetSyncPosition");
                     break;
                 case "player.inVent":
                     _offsets.player.inVent[0] = GetOffsetFromClass("PlayerControl", "inVent");

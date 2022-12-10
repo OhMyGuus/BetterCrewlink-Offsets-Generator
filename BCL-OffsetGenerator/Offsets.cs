@@ -34,7 +34,7 @@ namespace BCL_OffsetGenerator
         public List<long> palette { get; set; }
         public List<long> palette_playercolor { get; set; } = new List<long>();
         public List<long> palette_shadowColor { get; set; } = new List<long>();
-        public List<long> playerControl_GameOptions { get; set; } = new List<long>();
+        public List<long> gameoptionsData { get; set; } = new List<long>();
         public List<long> gameOptions_MapId { get; set; } = new List<long>();
         public List<long> gameOptions_MaxPLayers { get; set; } = new List<long>();
         public List<long> serverManager_currentServer { get; set; } = new List<long>();
@@ -48,6 +48,8 @@ namespace BCL_OffsetGenerator
         public Signatures signatures { get; set; }
         public bool oldMeetingHud { get; set; }
         public bool disableWriting { get; set; }
+        public bool newGameOptions { get; set; }
+
     }
 
     public record Innernetclient
@@ -118,6 +120,8 @@ namespace BCL_OffsetGenerator
         public Signature pingMessageString { get; set; }
         public Signature modLateUpdate { get; set; }
         public Signature serverManager { get; set; }
+        public Signature gameOptionsManager { get; set; }
+
     }
 
     public class Signature
