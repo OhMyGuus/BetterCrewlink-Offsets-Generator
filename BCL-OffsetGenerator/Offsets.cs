@@ -34,6 +34,7 @@ namespace BCL_OffsetGenerator
         public List<long> palette { get; set; }
         public List<long> palette_playercolor { get; set; } = new List<long>();
         public List<long> palette_shadowColor { get; set; } = new List<long>();
+        public List<long> playerControl_GameOptions { get; set; } = new List<long>(); //remove after a bit dpe of gameoptionsdata
         public List<long> gameoptionsData { get; set; } = new List<long>();
         public List<long> gameOptions_MapId { get; set; } = new List<long>();
         public List<long> gameOptions_MaxPLayers { get; set; } = new List<long>();
