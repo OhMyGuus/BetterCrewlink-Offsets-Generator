@@ -9,7 +9,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DepotDownloader;
+using FlareSolverrSharp;
 using HtmlAgilityPack;
+using static SteamKit2.GC.Dota.Internal.CMsgSDOAssert;
 
 namespace BCL_OffsetGenerator
 {
@@ -28,17 +30,37 @@ namespace BCL_OffsetGenerator
         public async Task<List<MannifestInfo>> FetchManifests()
         {
             List<MannifestInfo> manifests = new List<MannifestInfo>();
-            const string steamdbUrl = "https://steamdb.info/depot/945361/manifests/";
+            const string steamdbUrl = "http://127.0.0.1:8080/steamdb.html";
+         
+            //_httpClient = new HttpClient(handler);
+
 
             var httpHandler = new HttpClientHandler() { UseCookies = true, Proxy = GetProxy(), UseProxy = _config.Proxy.Enabled };
-            using (HttpClient httpClient = new HttpClient(httpHandler))
+            using (HttpClient httpClient = new HttpClient(handler))
             {
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36");
-                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
-                httpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("nl,en;q=0.9,en-US;q=0.8");
+      
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(":Authority", "steamdb.info");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(":Method", "GET");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(":Path", @"/depot/945361/manifests/");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(":Scheme", "https");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept-language", "en,nl;q=0.9,en-GB;q=0.8,en-US;q=0.7");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("cache-control", "no-cache");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("pragma", "no-cache");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-ch-ua-mobile", "?0");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-ch-ua-platform", "\"Windows\"");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-fetch-dest", "document");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-fetch-mode", "navigate");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-fetch-site", "none");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-fetch-user", "?1");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("upgrade-insecure-requests", "1");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Cookie", "__cf_bm=yeYFbW2.xaZifPOSaByeTvCJBf108XodbAKusPkvHQg-1686685994-0-Aa3NUQ+YDGAx3LUy/ApVw8avKbGKYxc4qd3GLc+GmEhToCtD01nBGDbrOgp5RwwSz6/feBcAV3KLOYb2I4/W0IX+WtEHa3OLzl/S62JPyIYR; arp_scroll_position=0");
+
                 //httpClient.DefaultRequestHeaders.AcceptEncoding.ParseAdd("gzip, deflate, br");
-                httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
-                    new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
+                //httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
+                //    new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
                 var steamdbHtml = await httpClient.GetStringAsync(steamdbUrl);
                 var htmlDoc = new HtmlDocument();
                 htmlDoc.LoadHtml(steamdbHtml);
