@@ -1,11 +1,11 @@
-﻿using System;
+﻿using BCL_OffsetGenerator.GameDownloadSources;
+using CommandLine;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using BCL_OffsetGenerator.GameDownloadSources;
-using CommandLine;
-using Newtonsoft.Json;
 using static BCL_OffsetGenerator.LookupJson;
 
 namespace BCL_OffsetGenerator
@@ -18,7 +18,7 @@ namespace BCL_OffsetGenerator
         //todo: allow arguments and move certain things to other classes.
         static async Task Main(string[] args)
         {
-        
+
             Console.WriteLine("Starting BetterCrewlink Offset generator");
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
@@ -42,7 +42,7 @@ namespace BCL_OffsetGenerator
                     Console.WriteLine("Starting source: {0}", type);
 
                     var sourceManifests = await downloadSource.FetchManifests();
-                    if(sourceManifests == null)
+                    if (sourceManifests == null)
                         continue;
                     //foreach (var manifest in sourceManifests)
                     //{
@@ -140,7 +140,8 @@ namespace BCL_OffsetGenerator
                 {
                     lookup.Versions[manifest.BroadcastVersion.Value.ToString()] = new LookupVersions()
                     {
-                        version = manifest.VersionWithoutGame, file = $"{offsetGen.Key.LastOrDefault().VersionWithoutGame}/offsets.json",
+                        version = manifest.VersionWithoutGame,
+                        file = $"{offsetGen.Key.LastOrDefault().VersionWithoutGame}/offsets.json",
                         offsetsVersion = Constants.CURRENT_OFFSET_VERSION
                     };
                 }

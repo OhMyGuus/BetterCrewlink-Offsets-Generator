@@ -12,6 +12,7 @@
 	"shipstatus_allDoors": [ 200 ],
 	"door_doorId": 28,
 	"door_isOpen": 32,
+	"mushroomDoor_isOpen": 0,
 	"deconDoorUpperOpen": [ 24, 24 ],
 	"deconDoorLowerOpen": [ 32, 24 ],
 	"hqHudSystemType_CompletedConsoles": [ 24, 32 ],

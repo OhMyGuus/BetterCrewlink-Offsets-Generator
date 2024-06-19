@@ -1,173 +1,151 @@
-﻿using System;
+﻿using DepotDownloader;
+using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DepotDownloader;
-using FlareSolverrSharp;
-using HtmlAgilityPack;
-using static SteamKit2.GC.Dota.Internal.CMsgSDOAssert;
 
-namespace BCL_OffsetGenerator
+namespace BCL_OffsetGenerator;
+
+class SteamDownloadSource : IGameDownloadSource
 {
-    class SteamDownloadSource : IGameDownloadSource
+    private SteamAccount _steamAccount => _config.SteamAccount;
+    private readonly SteamDownloadSourceConfig _config;
+
+    private static readonly DateTime ill2cppDate = new DateTime(2019, 11, 5, 0, 0, 0, DateTimeKind.Utc);
+
+    public SteamDownloadSource()
     {
-        private SteamAccount _steamAccount => _config.SteamAccount;
-        private readonly SteamDownloadSourceConfig _config;
+        _config = Config.Instance.SteamDownloadSourceConfig;
+    }
 
-        private static readonly DateTime ill2cppDate = new DateTime(2019, 11, 5, 0, 0, 0, DateTimeKind.Utc);
+    public async Task<List<MannifestInfo>> FetchManifests()
+    {
+        List<MannifestInfo> manifests = new List<MannifestInfo>();
+        const string steamdbUrl = "http://127.0.0.1:8080/steamdb.html";
 
-        public SteamDownloadSource()
+        //_httpClient = new HttpClient(handler);
+
+
+        var httpHandler = new HttpClientHandler() { UseCookies = true, Proxy = GetProxy(), UseProxy = _config.Proxy.Enabled };
+        using (HttpClient httpClient = new HttpClient(httpHandler))
         {
-            _config = Config.Instance.SteamDownloadSourceConfig;
-        }
-
-        public async Task<List<MannifestInfo>> FetchManifests()
-        {
-            List<MannifestInfo> manifests = new List<MannifestInfo>();
-            const string steamdbUrl = "http://127.0.0.1:8080/steamdb.html";
-         
-            //_httpClient = new HttpClient(handler);
 
 
-            var httpHandler = new HttpClientHandler() { UseCookies = true, Proxy = GetProxy(), UseProxy = _config.Proxy.Enabled };
-            using (HttpClient httpClient = new HttpClient(handler))
+            //httpClient.DefaultRequestHeaders.AcceptEncoding.ParseAdd("gzip, deflate, br");
+            //httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
+            //    new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
+            var steamdbHtml = await httpClient.GetStringAsync(steamdbUrl);
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(steamdbHtml);
+            var notes = htmlDoc.DocumentNode.SelectSingleNode("//div[@id='manifests']").SelectNodes(".//tr");
+            foreach (var note in notes)
             {
-      
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(":Authority", "steamdb.info");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(":Method", "GET");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(":Path", @"/depot/945361/manifests/");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(":Scheme", "https");
+                var colums = note.SelectNodes(".//td");
+                var codes = note.SelectNodes(".//code");
 
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept-language", "en,nl;q=0.9,en-GB;q=0.8,en-US;q=0.7");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("cache-control", "no-cache");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("pragma", "no-cache");
+                if (colums == null || codes != null)
+                    continue;
 
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-ch-ua-mobile", "?0");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-ch-ua-platform", "\"Windows\"");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-fetch-dest", "document");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-fetch-mode", "navigate");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-fetch-site", "none");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("sec-fetch-user", "?1");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("upgrade-insecure-requests", "1");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Cookie", "__cf_bm=yeYFbW2.xaZifPOSaByeTvCJBf108XodbAKusPkvHQg-1686685994-0-Aa3NUQ+YDGAx3LUy/ApVw8avKbGKYxc4qd3GLc+GmEhToCtD01nBGDbrOgp5RwwSz6/feBcAV3KLOYb2I4/W0IX+WtEHa3OLzl/S62JPyIYR; arp_scroll_position=0");
-
-                //httpClient.DefaultRequestHeaders.AcceptEncoding.ParseAdd("gzip, deflate, br");
-                //httpHandler.CookieContainer.Add(new Uri(steamdbUrl),
-                //    new Cookie("__Host-steamdb", _steamAccount.SteamDBCookie));
-                var steamdbHtml = await httpClient.GetStringAsync(steamdbUrl);
-                var htmlDoc = new HtmlDocument();
-                htmlDoc.LoadHtml(steamdbHtml);
-                var notes = htmlDoc.DocumentNode.SelectSingleNode("//div[@id='manifests']").SelectNodes(".//tr");
-                foreach (var note in notes)
+                var manifest = new MannifestInfo() { x64 = false };
+                foreach (var colum in colums)
                 {
-                    var colums = note.SelectNodes(".//td");
-                    var codes = note.SelectNodes(".//code");
-
-                    if (colums == null || codes != null)
-                        continue;
-
-                    var manifest = new MannifestInfo() { x64 = false };
-                    foreach (var colum in colums)
+                    if (colum.FirstChild.Attributes.Any(o => o.Name == "datetime"))
                     {
-                        if (colum.HasClass("timeago"))
-                        {
-                            manifest.Date = DateTime.Parse(colum.GetDataAttribute("time")?.Value ?? "");
-                        }
-
-                        if (colum.HasClass("tabular-nums"))
-                        {
-                            manifest.ManifestId = Convert.ToUInt64(colum.SelectSingleNode(".//a")?.InnerText ?? "0");
-                        }
+                        var input = colum.FirstChild.GetAttributeValue("datetime", "");
+                        manifest.Date = DateTime.Parse(input);
                     }
 
-                    if (manifest.Date != null && manifest.ManifestId > 0 && manifest.Date > ill2cppDate)
+                    if (colum.HasClass("tabular-nums"))
                     {
-                        manifests.Add(manifest);
+                        manifest.ManifestId = Convert.ToUInt64(colum.SelectSingleNode(".//a")?.InnerText ?? "0");
                     }
                 }
-            }
 
-            return manifests.OrderByDescending(o => o.Date).ToList();
-        }
-
-        public async Task DownloadManifests(List<MannifestInfo> manifests, bool skipDownload = false)
-        {
-            InitializeContentDownloader();
-
-            //  await ContentDownloader.DownloadAppAsync(945360, manifests.Select(o => ((uint)945361, o.ManifestId)).ToList(), ContentDownloader.DEFAULT_BRANCH, null, null, null, false, true);
-
-            foreach (var manifest in manifests.ToArray())
-            {
-                if (!await DownloadManifest(manifest, skipDownload))
+                if (manifest.Date != null && manifest.ManifestId > 0 && manifest.Date > ill2cppDate)
                 {
-                    manifests.Remove(manifest);
+                    manifests.Add(manifest);
                 }
             }
         }
 
-        public void InitializeContentDownloader()
+        return manifests.OrderByDescending(o => o.Date).ToList();
+    }
+
+    public async Task DownloadManifests(List<MannifestInfo> manifests, bool skipDownload = false)
+    {
+        InitializeContentDownloader();
+
+        //  await ContentDownloader.DownloadAppAsync(945360, manifests.Select(o => ((uint)945361, o.ManifestId)).ToList(), ContentDownloader.DEFAULT_BRANCH, null, null, null, false, true);
+
+        foreach (var manifest in manifests.ToArray())
         {
-            AccountSettingsStore.LoadFromFile("account.config");
-            ContentDownloader.Config.UsingFileList = true;
-            ContentDownloader.Config.MaxDownloads = 8;
-            ContentDownloader.Config.MaxServers = 20;
-            ContentDownloader.Config.InstallDirectory = Constants.AMONGUSFILES_PATH;
-            ContentDownloader.Config.FilesToDownloadRegex = new List<Regex>();
-            ContentDownloader.Config.FilesToDownload = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            if (!await DownloadManifest(manifest, skipDownload))
             {
-                "GameAssembly.dll",
-                "Among Us_Data/globalgamemanagers",
-                "Among Us_Data/il2cpp_data/Metadata/global-metadata.dat",
-                "MonoBleedingEdge/EmbedRuntime/MonoPosixHelper.dll"
-            };
-            DepotDownloader.Program.InitializeSteam(_steamAccount.Username, _steamAccount.Password);
+                manifests.Remove(manifest);
+            }
         }
+    }
 
-        private bool downloadedAllFiles(string folder) => (Directory.Exists(folder)
-                                                           && File.Exists($"{folder}/GameAssembly.dll")
-                                                           && File.Exists($"{folder}/Among Us_Data/globalgamemanagers")
-                                                           && File.Exists(
-                                                               $"{folder}/Among Us_Data/il2cpp_data/Metadata/global-metadata.dat"));
-
-        public async Task<bool> DownloadManifest(MannifestInfo manifest, bool skipDownload = false)
+    public void InitializeContentDownloader()
+    {
+        AccountSettingsStore.LoadFromFile("account.config");
+        ContentDownloader.Config.UsingFileList = true;
+        ContentDownloader.Config.MaxDownloads = 8;
+        ContentDownloader.Config.MaxServers = 20;
+        ContentDownloader.Config.InstallDirectory = Constants.AMONGUSFILES_PATH;
+        ContentDownloader.Config.FilesToDownloadRegex = new List<Regex>();
+        ContentDownloader.Config.FilesToDownload = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            var folder = $"{Constants.AMONGUSFILES_PATH}/{manifest.ManifestId}";
+            "GameAssembly.dll",
+            "Among Us_Data/globalgamemanagers",
+            "Among Us_Data/il2cpp_data/Metadata/global-metadata.dat",
+            "MonoBleedingEdge/EmbedRuntime/MonoPosixHelper.dll"
+        };
+        DepotDownloader.Program.InitializeSteam(_steamAccount.Username, _steamAccount.Password);
+    }
 
-            if (downloadedAllFiles(folder))
-                return true;
-            if (skipDownload || File.Exists($"{folder}/Among Us_Data/il2cpp_data/Metadata/global-metadata.dat"))
-                return false;
+    private bool downloadedAllFiles(string folder) => (Directory.Exists(folder)
+                                                       && File.Exists($"{folder}/GameAssembly.dll")
+                                                       && File.Exists($"{folder}/Among Us_Data/globalgamemanagers")
+                                                       && File.Exists(
+                                                           $"{folder}/Among Us_Data/il2cpp_data/Metadata/global-metadata.dat"));
 
-            DepotConfigStore.Instance = null;
-            ContentDownloader.Config.InstallDirectory = folder;
-            await ContentDownloader.DownloadAppAsync(945360, new List<(uint, ulong)> { (945361, manifest.ManifestId) },
-                ContentDownloader.DEFAULT_BRANCH, null, null, null, false, true);
+    public async Task<bool> DownloadManifest(MannifestInfo manifest, bool skipDownload = false)
+    {
+        var folder = $"{Constants.AMONGUSFILES_PATH}/{manifest.ManifestId}";
 
-            return downloadedAllFiles(folder);
-        }
+        if (downloadedAllFiles(folder))
+            return true;
+        if (skipDownload || File.Exists($"{folder}/Among Us_Data/il2cpp_data/Metadata/global-metadata.dat"))
+            return false;
 
-        public static bool Enabled => Config.Instance.SteamDownloadSourceConfig.Enabled;
+        DepotConfigStore.Instance = null;
+        ContentDownloader.Config.InstallDirectory = folder;
+        await ContentDownloader.DownloadAppAsync(945360, new List<(uint, ulong)> { (945361, manifest.ManifestId) },
+            ContentDownloader.DEFAULT_BRANCH, null, null, null, false, true);
+
+        return downloadedAllFiles(folder);
+    }
+
+    public static bool Enabled => Config.Instance.SteamDownloadSourceConfig.Enabled;
 
 
-        private IWebProxy GetProxy()
+    private IWebProxy GetProxy()
+    {
+        return _config.Proxy.Enabled ? new WebProxy
         {
-            return _config.Proxy.Enabled ? new WebProxy
-            {
-                Address = new Uri(_config.Proxy.Host),
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(_config.Proxy.Username, _config.Proxy.Password)
-            } : null;
-        }
-        public void Dispose()
-        {
-            ContentDownloader.ShutdownSteam3();
-        }
+            Address = new Uri(_config.Proxy.Host),
+            UseDefaultCredentials = false,
+            Credentials = new NetworkCredential(_config.Proxy.Username, _config.Proxy.Password)
+        } : null;
+    }
+    public void Dispose()
+    {
+        ContentDownloader.ShutdownSteam3();
     }
 }
